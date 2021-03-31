@@ -9,9 +9,8 @@ class Calculator:
         self.limit = limit
         self.records = []
 
-    def add_record(self, record: 'Record'):
+    def add_record(self, record: 'Record') -> None:
         """Сохраняет новую запись о расходах/приемах пищи."""
-        print(type(record))
         self.records.append(record)
 
     def get_today_stats(self):
@@ -68,11 +67,9 @@ class CashCalculator(Calculator):
             'usd': ('USD', self.USD_RATE),
             'eur': ('Euro', self.EURO_RATE)
         }
-        try:
-            (self.RUB_RATE or self.USD_RATE or self.EURO_RATE
-             in currency_r.values)
-        except ValueError:
-            raise
+        if (self.RUB_RATE or self.USD_RATE
+            or self.EURO_RATE not in currency_r.values):
+            raise ValueError('Такой валюты нет')
         cash_remained = self.get_remainder()
         if cash_remained == 0:
             return 'Денег нет, держись'
@@ -81,6 +78,5 @@ class CashCalculator(Calculator):
         if cash_remained > 0:
             return('На сегодня осталось '
                    f'{rate_all} {currency_name}')
-        else:
-            return('Денег нет, держись: твой долг '
-                   f'- {rate_all} {currency_name}')
+        return('Денег нет, держись: твой долг '
+               f'- {rate_all} {currency_name}')
