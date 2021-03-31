@@ -67,8 +67,7 @@ class CashCalculator(Calculator):
             'usd': ('USD', self.USD_RATE),
             'eur': ('Euro', self.EURO_RATE)
         }
-        if (self.RUB_RATE or self.USD_RATE
-            or self.EURO_RATE not in currency_r.values):
+        if currency not in currency_r.values:
             raise ValueError('Такой валюты нет')
         cash_remained = self.get_remainder()
         if cash_remained == 0:
