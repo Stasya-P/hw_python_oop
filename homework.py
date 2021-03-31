@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Union
+from typing import Optional
 
 DATE_FORMAT = '%d.%m.%Y'
 
@@ -9,33 +9,33 @@ class Calculator:
         self.limit = limit
         self.records = []
 
-    def add_record(self, record: Union[float, str]) -> None:
+    def add_record(self, record: 'Record'):
         """Сохраняет новую запись о расходах/приемах пищи."""
+        print(type(record))
         self.records.append(record)
 
     def get_today_stats(self):
         """Суммирует деньги/ккал за сегодняшний день."""
         today_date = dt.date.today()
-        return sum(record.amount for record in self.records if record.date
-                   == today_date)
+        return sum(record.amount for record in self.records
+                   if record.date == today_date)
 
     def get_week_stats(self) -> int:
         """Суммирует деньги/ккал за прошедшие 7 дней."""
-        week_sum = 0
+        today_date = dt.date.today()
         week_period = dt.timedelta(days=7)
-        week_ago = dt.date.today() - week_period
-        for record in self.records:
-            if dt.date.today() >= record.date > week_ago:
-                week_sum += record.amount
-        return week_sum
+        week_ago = today_date - week_period
+        return sum(record.amount for record in self.records
+                   if today_date >= record.date > week_ago)
 
     def get_remainder(self) -> int:
         """Высчитывает остаток на сегодня."""
-        return int(self.limit - self.get_today_stats())
+        return self.limit - self.get_today_stats()
 
 
 class Record:
-    def __init__(self, amount, date=None, comment: str = ''):
+    def __init__(self, amount: float, comment: str,
+                 date: Optional[str] = None) -> None:
         self.amount = amount
         self.comment = comment
         if date is None:
@@ -45,7 +45,7 @@ class Record:
 
 
 class CaloriesCalculator(Calculator):
-    def get_calories_remained(self) -> Union[str, int]:
+    def get_calories_remained(self) -> str:
         """Определяет, сколько ещё калорий можно/нужно получить сегодня."""
         calories_remained = self.get_remainder()
         if calories_remained > 0:
@@ -60,23 +60,46 @@ class CashCalculator(Calculator):
     USD_RATE = 74.25
     EURO_RATE = 87.72
 
-    def get_today_cash_remained(self, currency):
+    def get_today_cash_remained(self, currency: float) -> str:
         """Определяет, сколько ещё денег можно потратить сегодня в рублях,
-           долларах или евро."""
+        долларах или евро."""
         currency_r = {
             'rub': ('руб', self.RUB_RATE),
             'usd': ('USD', self.USD_RATE),
             'eur': ('Euro', self.EURO_RATE)
         }
+        try:
+            (self.RUB_RATE or self.USD_RATE or self.EURO_RATE
+             in currency_r.values)
+        except ValueError:
+            raise
         cash_remained = self.get_remainder()
-        currency_name, currency_rate = (currency_r[currency][0],
-                                        currency_r[currency][1])
+        if cash_remained == 0:
+            return 'Денег нет, держись'
+        currency_name, currency_rate = currency_r[currency]
         rate_all = abs(round(cash_remained / currency_rate, 2))
         if cash_remained > 0:
             return('На сегодня осталось '
                    f'{rate_all} {currency_name}')
-        elif cash_remained == 0:
-            return ('Денег нет, держись')
         else:
             return('Денег нет, держись: твой долг '
                    f'- {rate_all} {currency_name}')
+
+
+# создадим калькулятор денег с дневным лимитом 1000
+cash_calculator = CashCalculator(1000)
+
+# дата в параметрах не указана,
+# так что по умолчанию к записи
+# должна автоматически добавиться сегодняшняя дата
+cash_calculator.add_record(Record(amount=145, comment='кофе'))
+# и к этой записи тоже дата должна добавиться автоматически
+cash_calculator.add_record(Record(amount=300, comment='Серёге за обед'))
+# а тут пользователь указал дату, сохраняем её
+cash_calculator.add_record(Record(amount=3000,
+                                  comment='бар в Танин др',
+                                  date='08.11.2019'))
+
+print(cash_calculator.get_today_cash_remained('rub'))
+# должно напечататься
+# На сегодня осталось 555 руб
