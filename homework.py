@@ -59,7 +59,7 @@ class CashCalculator(Calculator):
     USD_RATE = 74.25
     EURO_RATE = 87.72
 
-    def get_today_cash_remained(self, currency: float) -> str:
+    def get_today_cash_remained(self, currency: str) -> str:
         """Определяет, сколько ещё денег можно потратить сегодня в рублях,
         долларах или евро."""
         currency_r = {
@@ -67,8 +67,8 @@ class CashCalculator(Calculator):
             'usd': ('USD', self.USD_RATE),
             'eur': ('Euro', self.EURO_RATE)
         }
-        if currency not in currency_r.values:
-            raise ValueError('Такой валюты нет')
+        if currency not in currency_r.keys():
+            raise ValueError('Такой валюты нет') 
         cash_remained = self.get_remainder()
         if cash_remained == 0:
             return 'Денег нет, держись'
