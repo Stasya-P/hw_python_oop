@@ -68,7 +68,7 @@ class CashCalculator(Calculator):
             'eur': ('Euro', self.EURO_RATE)
         }
         if currency not in currency_r.keys():
-            raise ValueError('Такой валюты нет') 
+            raise ValueError('Такой валюты нет')
         cash_remained = self.get_remainder()
         if cash_remained == 0:
             return 'Денег нет, держись'
